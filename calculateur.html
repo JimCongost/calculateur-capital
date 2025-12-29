@@ -1,0 +1,451 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import React, \{ useState \} from 'react';\
+import \{ Calculator, TrendingUp, Wallet \} from 'lucide-react';\
+\
+export default function FinancialSuite() \{\
+  const [activeApp, setActiveApp] = useState('loan');\
+\
+  return (\
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">\
+      <div className="max-w-7xl mx-auto">\
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">\
+          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">\
+            \uc0\u55357 \u56496  Suite d'Applications Financi\'e8res\
+          </h1>\
+          <p className="text-center text-gray-600">G\'e9rez vos finances simplement et efficacement</p>\
+        </div>\
+\
+        <div className="bg-white rounded-2xl shadow-xl mb-6 overflow-hidden">\
+          <div className="grid grid-cols-1 md:grid-cols-3">\
+            <button onClick=\{() => setActiveApp('loan')\} className=\{`p-6 flex items-center justify-center gap-3 transition-all $\{activeApp === 'loan' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'\}`\}>\
+              <Calculator className="w-6 h-6" />\
+              <span className="font-semibold text-lg">Calculateur de Pr\'eat</span>\
+            </button>\
+            <button onClick=\{() => setActiveApp('investment')\} className=\{`p-6 flex items-center justify-center gap-3 transition-all $\{activeApp === 'investment' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'\}`\}>\
+              <TrendingUp className="w-6 h-6" />\
+              <span className="font-semibold text-lg">Calculateur d'Investissement</span>\
+            </button>\
+            <button onClick=\{() => setActiveApp('capital')\} className=\{`p-6 flex items-center justify-center gap-3 transition-all $\{activeApp === 'capital' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'\}`\}>\
+              <Wallet className="w-6 h-6" />\
+              <span className="font-semibold text-lg">Dur\'e9e de Vie du Capital</span>\
+            </button>\
+          </div>\
+        </div>\
+\
+        \{activeApp === 'loan' && <LoanCalculator />\}\
+        \{activeApp === 'investment' && <InvestmentCalculator />\}\
+        \{activeApp === 'capital' && <CapitalLifeCalculator />\}\
+      </div>\
+    </div>\
+  );\
+\}\
+\
+function LoanCalculator() \{\
+  const [amount, setAmount] = useState('100000');\
+  const [displayAmount, setDisplayAmount] = useState('100 000');\
+  const [rate, setRate] = useState('3.5');\
+  const [duration, setDuration] = useState('240');\
+  const [results, setResults] = useState(null);\
+\
+  const handleAmountChange = (e) => \{\
+    const v = e.target.value.replace(/\\s/g, '');\
+    if (v === '' || /^\\d+$/.test(v)) \{\
+      setAmount(v);\
+      setDisplayAmount(v.replace(/\\B(?=(\\d\{3\})+(?!\\d))/g, ' '));\
+    \}\
+  \};\
+\
+  const calculateLoan = () => \{\
+    const p = parseFloat(amount);\
+    const r = parseFloat(rate) / 100 / 12;\
+    const n = parseInt(duration);\
+    if (!p || !r || !n || p <= 0 || n <= 0) \{ alert('Valeurs invalides'); return; \}\
+    const m = p * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);\
+    let bal = p;\
+    const sched = [];\
+    let totInt = 0;\
+    for (let i = 1; i <= n; i++) \{\
+      const intPay = bal * r;\
+      const prinPay = m - intPay;\
+      bal -= prinPay;\
+      totInt += intPay;\
+      sched.push(\{ month: i, principalPayment: prinPay, interestPayment: intPay, remainingBalance: Math.max(0, bal) \});\
+    \}\
+    const yearlyTotals = [];\
+    for (let y = 0; y < Math.ceil(n / 12); y++) \{\
+      const start = y * 12;\
+      const end = Math.min((y + 1) * 12, n);\
+      const yData = sched.slice(start, end);\
+      yearlyTotals.push(\{ year: y + 1, endMonth: end, totalPrincipal: yData.reduce((s, m) => s + m.principalPayment, 0), totalInterest: yData.reduce((s, m) => s + m.interestPayment, 0) \});\
+    \}\
+    setResults(\{ monthlyPayment: m, totalInterest: totInt, totalAmount: p + totInt, schedule: sched, yearlyTotals \});\
+  \};\
+\
+  const fmt = (v) => new Intl.NumberFormat('fr-FR', \{ style: 'currency', currency: 'EUR' \}).format(v);\
+\
+  return (\
+    <div>\
+      <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">\
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Calculateur de Pr\'eat</h2>\
+        <div className="grid md:grid-cols-3 gap-6 mb-6">\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Montant emprunt\'e9 (\'80)</label>\
+            <input type="text" value=\{displayAmount\} onChange=\{handleAmountChange\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Taux d'int\'e9r\'eat annuel (%)</label>\
+            <input type="number" step="0.01" value=\{rate\} onChange=\{(e) => setRate(e.target.value)\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Dur\'e9e (mois)</label>\
+            <input type="number" value=\{duration\} onChange=\{(e) => setDuration(e.target.value)\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+        </div>\
+        <button onClick=\{calculateLoan\} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-lg">Calculer</button>\
+      </div>\
+\
+      \{results && (\
+        <>\
+          <div className="grid md:grid-cols-3 gap-6 mb-6">\
+            <div className="bg-white rounded-xl shadow-lg p-6">\
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Mensualit\'e9</h3>\
+              <p className="text-3xl font-bold text-indigo-600">\{fmt(results.monthlyPayment)\}</p>\
+            </div>\
+            <div className="bg-white rounded-xl shadow-lg p-6">\
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Total des int\'e9r\'eats</h3>\
+              <p className="text-3xl font-bold text-orange-600">\{fmt(results.totalInterest)\}</p>\
+            </div>\
+            <div className="bg-white rounded-xl shadow-lg p-6">\
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">Montant total</h3>\
+              <p className="text-3xl font-bold text-green-600">\{fmt(results.totalAmount)\}</p>\
+            </div>\
+          </div>\
+\
+          <div className="bg-white rounded-2xl shadow-xl p-8">\
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Tableau d'Amortissement</h2>\
+            <div className="overflow-x-auto">\
+              <table className="w-full">\
+                <thead>\
+                  <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">\
+                    <th className="px-4 py-3 text-left">Mois</th>\
+                    <th className="px-4 py-3 text-right">Capital Rembours\'e9</th>\
+                    <th className="px-4 py-3 text-right">Int\'e9r\'eats</th>\
+                    <th className="px-4 py-3 text-right">Capital Restant</th>\
+                  </tr>\
+                </thead>\
+                <tbody>\
+                  \{results.schedule.map((row, idx) => \{\
+                    const isYearEnd = row.month % 12 === 0 || row.month === results.schedule.length;\
+                    const yTotal = isYearEnd ? results.yearlyTotals.find(y => y.endMonth === row.month) : null;\
+                    return (\
+                      <React.Fragment key=\{row.month\}>\
+                        <tr className=\{`border-b $\{idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'\} hover:bg-indigo-50`\}>\
+                          <td className="px-4 py-3 font-semibold">\{row.month\}</td>\
+                          <td className="px-4 py-3 text-right">\{fmt(row.principalPayment)\}</td>\
+                          <td className="px-4 py-3 text-right">\{fmt(row.interestPayment)\}</td>\
+                          <td className="px-4 py-3 text-right font-semibold">\{fmt(row.remainingBalance)\}</td>\
+                        </tr>\
+                        \{yTotal && (\
+                          <tr className="bg-indigo-100 border-b-2 border-indigo-600 font-bold">\
+                            <td className="px-4 py-3">Total Ann\'e9e \{yTotal.year\}</td>\
+                            <td className="px-4 py-3 text-right text-indigo-700">\{fmt(yTotal.totalPrincipal)\}</td>\
+                            <td className="px-4 py-3 text-right text-indigo-700">\{fmt(yTotal.totalInterest)\}</td>\
+                            <td className="px-4 py-3"></td>\
+                          </tr>\
+                        )\}\
+                      </React.Fragment>\
+                    );\
+                  \})\}\
+                </tbody>\
+              </table>\
+            </div>\
+          </div>\
+        </>\
+      )\}\
+    </div>\
+  );\
+\}\
+\
+function InvestmentCalculator() \{\
+  const [capital, setCapital] = useState('1000');\
+  const [displayCapital, setDisplayCapital] = useState('1 000');\
+  const [interest, setInterest] = useState('5');\
+  const [payment, setPayment] = useState('100');\
+  const [displayPayment, setDisplayPayment] = useState('100');\
+  const [frequency, setFrequency] = useState('12');\
+  const [duration, setDuration] = useState('120');\
+  const [results, setResults] = useState(null);\
+\
+  const handleCapitalChange = (e) => \{\
+    const v = e.target.value.replace(/\\s/g, '');\
+    if (v === '' || /^\\d+$/.test(v)) \{ setCapital(v); setDisplayCapital(v.replace(/\\B(?=(\\d\{3\})+(?!\\d))/g, ' ')); \}\
+  \};\
+\
+  const handlePaymentChange = (e) => \{\
+    const v = e.target.value.replace(/\\s/g, '');\
+    if (v === '' || /^\\d+$/.test(v)) \{ setPayment(v); setDisplayPayment(v.replace(/\\B(?=(\\d\{3\})+(?!\\d))/g, ' ')); \}\
+  \};\
+\
+  const calculateInvestment = () => \{\
+    const cap = parseFloat(capital);\
+    const rate = parseFloat(interest) / 100;\
+    const pay = parseFloat(payment);\
+    const freq = parseInt(frequency);\
+    const dur = parseInt(duration);\
+    const periods = Math.floor(dur / (12 / freq));\
+    const rPer = rate / freq;\
+    let curr = cap;\
+    let totPay = 0;\
+    let totInt = 0;\
+    const data = [];\
+    for (let i = 0; i < periods; i++) \{\
+      const intPer = curr * rPer;\
+      curr += intPer; totInt += intPer; curr += pay; totPay += pay;\
+      data.push(\{ period: i + 1, payment: pay, totalInvested: cap + totPay, interestPeriod: intPer, totalInterest: totInt, totalCapital: curr \});\
+    \}\
+    setResults(\{ finalAmount: curr, totalInvested: cap + totPay, totalInterest: totInt, totalPeriods: periods, amortizationData: data, periodsPerYear: freq \});\
+  \};\
+\
+  const fmt = (v) => new Intl.NumberFormat('fr-FR', \{ style: 'currency', currency: 'EUR' \}).format(v);\
+\
+  return (\
+    <div>\
+      <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">\
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Calculateur d'Investissement</h2>\
+        <div className="grid md:grid-cols-2 gap-6 mb-6">\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Capital de d\'e9part (\'80)</label>\
+            <input type="text" value=\{displayCapital\} onChange=\{handleCapitalChange\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Taux d'int\'e9r\'eat annuel (%)</label>\
+            <input type="number" step="0.1" value=\{interest\} onChange=\{(e) => setInterest(e.target.value)\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Versement p\'e9riodique (\'80)</label>\
+            <input type="text" value=\{displayPayment\} onChange=\{handlePaymentChange\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Fr\'e9quence des versements</label>\
+            <select value=\{frequency\} onChange=\{(e) => setFrequency(e.target.value)\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none">\
+              <option value="12">Mensuel</option>\
+              <option value="4">Trimestriel</option>\
+              <option value="2">Semestriel</option>\
+              <option value="1">Annuel</option>\
+            </select>\
+          </div>\
+          <div className="md:col-span-2">\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Dur\'e9e (mois)</label>\
+            <input type="number" value=\{duration\} onChange=\{(e) => setDuration(e.target.value)\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+        </div>\
+        <button onClick=\{calculateInvestment\} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-lg">Calculer</button>\
+      </div>\
+\
+      \{results && (\
+        <>\
+          <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl shadow-xl p-8 text-white mb-6">\
+            <h2 className="text-xl font-semibold mb-4">Montant final estim\'e9</h2>\
+            <div className="text-5xl font-bold mb-6">\{fmt(results.finalAmount)\}</div>\
+            <div className="bg-white bg-opacity-20 rounded-lg p-4">\
+              <div className="flex justify-between mb-2">\
+                <span className="font-semibold">Capital investi :</span>\
+                <span>\{fmt(results.totalInvested)\}</span>\
+              </div>\
+              <div className="flex justify-between mb-2">\
+                <span className="font-semibold">Int\'e9r\'eats gagn\'e9s :</span>\
+                <span>\{fmt(results.totalInterest)\}</span>\
+              </div>\
+              <div className="flex justify-between">\
+                <span className="font-semibold">Nombre de versements :</span>\
+                <span>\{results.totalPeriods\}</span>\
+              </div>\
+            </div>\
+          </div>\
+\
+          <div className="bg-white rounded-2xl shadow-xl p-8">\
+            <h3 className="text-2xl font-bold text-gray-800 mb-6">\uc0\u55357 \u56522  Tableau d'amortissement</h3>\
+            <div className="overflow-x-auto max-h-96">\
+              <table className="w-full text-sm">\
+                <thead className="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">\
+                  <tr>\
+                    <th className="px-3 py-3 text-center">P\'e9riode</th>\
+                    <th className="px-3 py-3 text-right">Versement</th>\
+                    <th className="px-3 py-3 text-right">Total investi</th>\
+                    <th className="px-3 py-3 text-right">Int\'e9r\'eats p\'e9riode</th>\
+                    <th className="px-3 py-3 text-right">Total int\'e9r\'eats</th>\
+                    <th className="px-3 py-3 text-right">Capital total</th>\
+                  </tr>\
+                </thead>\
+                <tbody>\
+                  \{results.amortizationData.map((row, idx) => \{\
+                    const isYearEnd = (idx + 1) % results.periodsPerYear === 0 || idx === results.amortizationData.length - 1;\
+                    const yearNum = Math.ceil((idx + 1) / results.periodsPerYear);\
+                    let yPay = 0, yInt = 0;\
+                    if (isYearEnd) \{\
+                      const start = Math.max(0, idx - results.periodsPerYear + 1);\
+                      for (let i = start; i <= idx; i++) \{ yPay += results.amortizationData[i].payment; yInt += results.amortizationData[i].interestPeriod; \}\
+                    \}\
+                    return (\
+                      <React.Fragment key=\{row.period\}>\
+                        <tr className=\{`border-b $\{idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'\} hover:bg-indigo-50`\}>\
+                          <td className="px-3 py-2 text-center font-semibold text-indigo-600">\{row.period\}</td>\
+                          <td className="px-3 py-2 text-right">\{fmt(row.payment)\}</td>\
+                          <td className="px-3 py-2 text-right">\{fmt(row.totalInvested)\}</td>\
+                          <td className="px-3 py-2 text-right">\{fmt(row.interestPeriod)\}</td>\
+                          <td className="px-3 py-2 text-right">\{fmt(row.totalInterest)\}</td>\
+                          <td className="px-3 py-2 text-right font-semibold">\{fmt(row.totalCapital)\}</td>\
+                        </tr>\
+                        \{isYearEnd && (\
+                          <tr className="bg-yellow-100 border-y-2 border-indigo-600 font-bold">\
+                            <td colSpan="6" className="px-3 py-2 text-purple-700">\uc0\u10022  Ann\'e9e \{yearNum\} : Versements = \{fmt(yPay)\} | Int\'e9r\'eats = \{fmt(yInt)\}</td>\
+                          </tr>\
+                        )\}\
+                      </React.Fragment>\
+                    );\
+                  \})\}\
+                </tbody>\
+              </table>\
+            </div>\
+          </div>\
+        </>\
+      )\}\
+    </div>\
+  );\
+\}\
+\
+function CapitalLifeCalculator() \{\
+  const [capital, setCapital] = useState('');\
+  const [displayCapital, setDisplayCapital] = useState('');\
+  const [taux, setTaux] = useState('');\
+  const [retrait, setRetrait] = useState('');\
+  const [displayRetrait, setDisplayRetrait] = useState('');\
+  const [periodicite, setPeriodicite] = useState('mensuel');\
+  const [results, setResults] = useState(null);\
+  const [error, setError] = useState('');\
+\
+  const handleCapitalChange = (e) => \{\
+    const v = e.target.value.replace(/\\s/g, '');\
+    if (v === '' || /^\\d+$/.test(v)) \{\
+      setCapital(v);\
+      setDisplayCapital(v.replace(/\\B(?=(\\d\{3\})+(?!\\d))/g, ' '));\
+    \}\
+  \};\
+\
+  const handleRetraitChange = (e) => \{\
+    const v = e.target.value.replace(/\\s/g, '');\
+    if (v === '' || /^\\d+$/.test(v)) \{\
+      setRetrait(v);\
+      setDisplayRetrait(v.replace(/\\B(?=(\\d\{3\})+(?!\\d))/g, ' '));\
+    \}\
+  \};\
+\
+  const parse = (str) => parseFloat(str.replace(/\\s/g, '').replace(',', '.'));\
+\
+  const calculateCapitalLife = () => \{\
+    setError(''); setResults(null);\
+    const capInit = parse(capital);\
+    const tauxAnn = parse(taux) / 100;\
+    const montRet = parse(retrait);\
+    if (isNaN(capInit) || isNaN(tauxAnn) || isNaN(montRet)) \{ setError('Valeurs invalides'); return; \}\
+    if (capInit <= 0 || montRet <= 0) \{ setError('Capital et retrait doivent \'eatre positifs'); return; \}\
+    let retAn, tPer;\
+    switch (periodicite) \{\
+      case 'mensuel': retAn = 12; tPer = Math.pow(1 + tauxAnn, 1/12) - 1; break;\
+      case 'trimestriel': retAn = 4; tPer = Math.pow(1 + tauxAnn, 1/4) - 1; break;\
+      case 'semestriel': retAn = 2; tPer = Math.pow(1 + tauxAnn, 1/2) - 1; break;\
+      case 'annuel': retAn = 1; tPer = tauxAnn; break;\
+    \}\
+    const intPrem = capInit * tPer;\
+    if (intPrem >= montRet) \{ setResults(\{ isInfinite: true, interetsPremierePeriode: intPrem \}); return; \}\
+    let cap = capInit; let nbPer = 0; let totRet = 0; let totInt = 0;\
+    while (cap > 0 && nbPer < 10000) \{\
+      const int = cap * tPer;\
+      totInt += int; cap += int;\
+      const retEff = Math.min(montRet, cap);\
+      cap -= retEff; totRet += retEff; nbPer++;\
+      if (cap < montRet && cap > 0) break;\
+    \}\
+    const totMois = Math.floor(nbPer * 12 / retAn);\
+    const ans = Math.floor(totMois / 12);\
+    const mois = totMois % 12;\
+    setResults(\{ isInfinite: false, annees: ans, mois, totalRetraits: totRet, totalInterets: totInt \});\
+  \};\
+\
+  const fmt = (v) => new Intl.NumberFormat('fr-FR', \{ style: 'currency', currency: 'EUR' \}).format(v);\
+\
+  return (\
+    <div>\
+      <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">\
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Calculateur de dur\'e9e de vie du capital</h2>\
+        <div className="space-y-6">\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Capital initial (\'80)</label>\
+            <input type="text" value=\{displayCapital\} onChange=\{handleCapitalChange\} placeholder="Ex: 100 000" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Taux d'int\'e9r\'eat annuel (%)</label>\
+            <input type="text" value=\{taux\} onChange=\{(e) => setTaux(e.target.value)\} placeholder="Ex: 3.5" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Montant du retrait (\'80)</label>\
+            <input type="text" value=\{displayRetrait\} onChange=\{handleRetraitChange\} placeholder="Ex: 1 500" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none" />\
+          </div>\
+          <div>\
+            <label className="block text-sm font-semibold text-gray-700 mb-2">P\'e9riodicit\'e9 des retraits</label>\
+            <select value=\{periodicite\} onChange=\{(e) => setPeriodicite(e.target.value)\} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none">\
+              <option value="mensuel">Mensuel</option>\
+              <option value="trimestriel">Trimestriel</option>\
+              <option value="semestriel">Semestriel</option>\
+              <option value="annuel">Annuel</option>\
+            </select>\
+          </div>\
+          <button onClick=\{calculateCapitalLife\} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-lg">Calculer</button>\
+          \{error && <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">\{error\}</div>\}\
+        </div>\
+      </div>\
+\
+      \{results && (\
+        <div className="bg-gradient-to-br from-gray-50 to-gray-200 rounded-2xl shadow-xl p-8">\
+          \{results.isInfinite ? (\
+            <>\
+              <div className="bg-white rounded-xl p-6 mb-4">\
+                <div className="text-gray-600 text-sm mb-2">Dur\'e9e de vie du capital</div>\
+                <div className="text-5xl font-bold text-gray-800">\uc0\u9854 \u65039  Infinie</div>\
+              </div>\
+              <div className="p-4 bg-green-100 border-2 border-green-400 text-green-800 rounded-lg font-semibold">\
+                Les int\'e9r\'eats g\'e9n\'e9r\'e9s (\{fmt(results.interetsPremierePeriode)\}) sont sup\'e9rieurs ou \'e9gaux au montant du retrait. Le capital ne sera jamais \'e9puis\'e9.\
+              </div>\
+            </>\
+          ) : (\
+            <>\
+              <div className="bg-white rounded-xl p-6 mb-4">\
+                <div className="text-gray-600 text-sm mb-2">Dur\'e9e de vie du capital</div>\
+                <div className="text-4xl font-bold text-gray-800">\
+                  \{results.annees > 0 && `$\{results.annees\} an$\{results.annees > 1 ? 's' : ''\}`\}\
+                  \{results.annees > 0 && results.mois > 0 && ' et '\}\
+                  \{results.mois > 0 && `$\{results.mois\} mois`\}\
+                  \{results.annees === 0 && results.mois === 0 && "Moins d'un mois"\}\
+                </div>\
+              </div>\
+              <div className="bg-white rounded-xl p-6 mb-4">\
+                <div className="text-gray-600 text-sm mb-2">Total des retraits</div>\
+                <div className="text-3xl font-bold text-gray-800">\{fmt(results.totalRetraits)\}</div>\
+              </div>\
+              <div className="bg-white rounded-xl p-6">\
+                <div className="text-gray-600 text-sm mb-2">Total des int\'e9r\'eats servis</div>\
+                <div className="text-3xl font-bold text-gray-800">\{fmt(results.totalInterets)\}</div>\
+              </div>\
+            </>\
+          )\}\
+        </div>\
+      )\}\
+    </div>\
+  );\
+\}}
